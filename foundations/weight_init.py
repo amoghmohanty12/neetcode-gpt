@@ -1,59 +1,25 @@
-import torch
-import torch.nn as nn
-import math
+import numpy as np
+from numpy.typing import NDArray
 from typing import List
 
 
 class Solution:
-
-    def xavier_init(self, fan_in: int, fan_out: int) -> List[List[float]]:
-        # Return a (fan_out x fan_in) weight matrix using Xavier/Glorot normal initialization
-        # Use torch.manual_seed(0) for reproducibility
-        # Round to 4 decimal places and return as nested list
-        torch.manual_seed(0)
-        std = math.sqrt(2.0 / (fan_in + fan_out))
-        weights = torch.randn(fan_out, fan_in) * std
-        return torch.round(weights, decimals=4).tolist()
-
+    def forward(self, x: NDArray[np.float64], weights: List[NDArray[np.float64]], biases: List[NDArray[np.float64]]) -> NDArray[np.float64]:
+        # x: 1D input array
+        # weights: list of 2D weight matrices
+        # biases: list of 1D bias vectors
+        # Apply ReLU after each hidden layer, no activation on output layer
+        # return np.round(your_answer, 5)
+        res = x
+        # weights = np.array(weights)
+        # bias = np.array(bias)
+        for i in range(len(weights)):
+            print(weights[i].shape)
+        for i in range(len(weights)):
+            print("res shape," , res.shape)
+            res = res@weights[i] +biases[i]
+            if i < len(weights) - 1:
+                print(res.shape)
+                res = res*(res>0)
+        return np.round(res,5)
         
-
-    def kaiming_init(self, fan_in: int, fan_out: int) -> List[List[float]]:
-        # Return a (fan_out x fan_in) weight matrix using Kaiming/He normal initialization (for ReLU)
-        # Use torch.manual_seed(0) for reproducibility
-        # Round to 4 decimal places and return as nested list
-        torch.manual_seed(0)
-        std = math.sqrt(2.0 / (fan_in))
-        weights = torch.randn(fan_out, fan_in) * std
-        return torch.round(weights, decimals=4).tolist()
-
-
-    def check_activations(self, num_layers: int, input_dim: int, hidden_dim: int, init_type: str) -> List[float]:
-        # Forward random input through num_layers with the given init_type.
-        # Use torch.manual_seed(0) once at the start.
-        # Return the std of activations after each layer, rounded to 2 decimals.
-        torch.manual_seed(0)
-        dims = [input_dim] + [hidden_dim] * num_layers
-        print([input_dim])
-        print([hidden_dim])
-        print([input_dim]+[hidden_dim])
-        print(num_layers)
-        print(dims)
-        weights = []
-        for i in range(num_layers):
-            if init_type == 'xavier':
-                std = math.sqrt(2.0 / (dims[i] + dims[i + 1]))
-            elif init_type == 'kaiming':
-                std = math.sqrt(2.0 / dims[i])
-            else:
-                std = 1.0
-            w = torch.randn(dims[i + 1], dims[i]) * std
-            weights.append(w)
-
-        x = torch.randn(1, input_dim)
-        stds = []
-        for w in weights:
-            x = x @ w.T
-            x = torch.relu(x)
-            stds.append(round(x.std().item(), 2))
-
-        return stds
